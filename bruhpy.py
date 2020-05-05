@@ -1,8 +1,9 @@
 import pygame
 import maingg
 from InputBox import InputBox
-import random
+from random import randint, choice
 import sqlite3
+from time import sleep
 
 pygame.init()
 
@@ -15,7 +16,7 @@ except sqlite3.OperationalError:
     pass
 
 field_ize = 30
-line_size = 3
+line_size = 1
 
 
 red_field = pygame.Surface((field_ize, field_ize))
@@ -219,7 +220,6 @@ class Game():
 
     def game(self):
         while True:
-
             for event in pygame.event.get():
                 y = self.line_size
                 for i in self.player1.ships:
@@ -229,6 +229,13 @@ class Game():
                             self.ships_fieldSurf.blit(self.red_field, (x, y))
                         x += self.field_ize + self.line_size
                     y += self.field_ize + self.line_size
+                for y in range(12):
+                    pygame.draw.aaline(self.ships_fieldSurf, (0,0,0), (0, y*31), (312, y*31))
+                    pygame.draw.aaline(self.shots_fieldSurf, (0, 0, 0), (0, y*31), (312, y*31))
+                for x in range(12):
+                    pygame.draw.aaline(self.ships_fieldSurf, (0,0,0), (x*31, 0), (x*31, 312))
+                    pygame.draw.aaline(self.shots_fieldSurf, (0, 0, 0), (x*31, 0), (x*31, 312))
+
                 y = self.line_size
                 for i in self.player1.ships_visual:
                     x = self.line_size
@@ -256,16 +263,15 @@ class Game():
                             y = int((event.pos[1]-50)/self.fieodandline)
                             if y == 10:
                                 y -= 1
-                            hp, self.player2.ships = self.player1.shoot(x, y, self.player2.ships)
-                            self.player2.alive += hp
-                            self.move *= -1
+                            if self.player1.shots[y][x] == 0:
+                                hp, self.player2.ships = self.player1.shoot(x, y, self.player2.ships)
+                                self.player2.alive += hp
+                                self.move *= -1
                 else:
                     hp, self.player1.ships = self.player2.shoot(self.player1.ships)
                     self.player1.alive += hp
                     self.move *= -1
 
-                ##################
-                ##################
                 y = self.line_size
                 for i in self.player2.shots:
                     x = self.line_size
@@ -274,8 +280,7 @@ class Game():
                             self.ships_fieldSurf.blit(self.green_field, (x, y))
                         x += self.field_ize + self.line_size
                     y += self.field_ize + self.line_size
-                ##################
-                ##################
+
                 y = self.line_size
                 for i in self.player1.shots:
                     x = self.line_size
@@ -286,13 +291,36 @@ class Game():
                             self.shots_fieldSurf.blit(self.grey_field, (x, y))
                         x += self.field_ize + self.line_size
                     y += self.field_ize + self.line_size
-                ##################
-                ##################
+
                 self.screen.blit(self.ships_fieldSurf, self.ships_fieldRect)
                 self.screen.blit(self.shots_fieldSurf, self.shots_fieldRect)
                 if self.player1.alive == 0:
+                    y = self.line_size
+                    for i in self.player1.shots:
+                        x = self.line_size
+                        for u in i:
+                            if u == 1:
+                                self.shots_fieldSurf.blit(self.red_field, (x, y))
+                            elif u == 2:
+                                self.shots_fieldSurf.blit(self.grey_field, (x, y))
+                            x += self.field_ize + self.line_size
+                        y += self.field_ize + self.line_size
+                        pygame.display.update()
+                    sleep(5)
                     return "player2"
                 elif self.player2.alive == 0:
+                    y = self.line_size
+                    for i in self.player1.shots:
+                        x = self.line_size
+                        for u in i:
+                            if u == 1:
+                                self.shots_fieldSurf.blit(self.red_field, (x, y))
+                            elif u == 2:
+                                self.shots_fieldSurf.blit(self.grey_field, (x, y))
+                            x += self.field_ize + self.line_size
+                        y += self.field_ize + self.line_size
+                    pygame.display.update()
+                    sleep(5)
                     return "player1"
             pygame.display.update()
 
@@ -306,27 +334,44 @@ class Game():
             self.screen.blit(self.ships_fieldSurf, self.ships_fieldRect)
             self.screen.blit(self.shots_fieldSurf, self.shots_fieldRect)
             y = self.line_size
+            for y in range(12):
+                pygame.draw.aaline(self.ships_fieldSurf, (0, 0, 0), (0, y * 31), (312, y * 31))
+                pygame.draw.aaline(self.shots_fieldSurf, (0, 0, 0), (0, y * 31), (312, y * 31))
+            for x in range(12):
+                pygame.draw.aaline(self.ships_fieldSurf, (0, 0, 0), (x * 31, 0), (x * 31, 312))
+                pygame.draw.aaline(self.shots_fieldSurf, (0, 0, 0), (x * 31, 0), (x * 31, 312))
             for i in self.player1.ships_visual:
-                x = self.line_size
-                for u in i:
-                    if u == 1:
-                        self.ships_fieldSurf.blit(self.cutter, (x, y))
-                    x += self.field_ize + self.line_size
-                y += self.field_ize + self.line_size
+                y = self.line_size
+                for i in self.player1.ships_visual:
+                    x = self.line_size
+                    for u in i:
+                        if u == 1:
+                            self.ships_fieldSurf.blit(self.cutter, (x, y))
+                        elif u == 2:
+                            self.ships_fieldSurf.blit(self.destroyer, (x, y - self.field_ize))
+                        elif u == 3:
+                            self.ships_fieldSurf.blit(self.cruiser, (x, y - (self.field_ize * 2)))
+                        elif u == 4:
+                            self.ships_fieldSurf.blit(self.battleship, (x, y))
+                        elif u == -1:
+                            self.ships_fieldSurf.blit(self.red_field, (x, y))
+                        x += self.field_ize + self.line_size
+                    y += self.field_ize + self.line_size
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return -5
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    x = int((event.pos[0] - 50) / self.fieodandline)
-                    if x == 10:
-                        x -= 1
-                    y = int((event.pos[1] - 50) / self.fieodandline)
-                    if y == 10:
-                        y -= 1
-                    if self.player1.ships[y][x] == 0:
-                        self.player1.ships[y][x] = 1
-                        self.player1.ships_visual[y][x] = 1
-                        a -= 1
+                    if self.ships_fieldRect.collidepoint(event.pos):
+                        x = int((event.pos[0] - 50) / self.fieodandline)
+                        if x == 10:
+                            x -= 1
+                        y = int((event.pos[1] - 50) / self.fieodandline)
+                        if y == 10:
+                            y -= 1
+                        if self.player1.ships[y][x] == 0:
+                            self.player1.ships[y][x] = 1
+                            self.player1.ships_visual[y][x] = 1
+                            a -= 1
             mouse_pos = pygame.mouse.get_pos()
             self.screen.blit(self.cutter, (int(mouse_pos[0]-(self.field_ize/2)), int(mouse_pos[1]-(self.field_ize/2))))
             pygame.display.update()
@@ -355,18 +400,19 @@ class Game():
                 if event.type == pygame.QUIT:
                     return -5
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    x = int((event.pos[0] - 50) / self.fieodandline)
-                    if x == 10:
-                        x -= 1
-                    y = int((event.pos[1] - 50) / self.fieodandline)
-                    if y == 10:
-                        y -= 1
-                    if y != 0:
-                        if self.player1.ships[y][x] == 0 and self.player1.ships[y-1][x] == 0:
-                            self.player1.ships[y][x] = 1
-                            self.player1.ships_visual[y][x] = 2
-                            self.player1.ships[y - 1][x] = 1
-                            a -= 1
+                    if self.ships_fieldRect.collidepoint(event.pos):
+                        x = int((event.pos[0] - 50) / self.fieodandline)
+                        if x == 10:
+                            x -= 1
+                        y = int((event.pos[1] - 50) / self.fieodandline)
+                        if y == 10:
+                            y -= 1
+                        if y != 0:
+                            if self.player1.ships[y][x] == 0 and self.player1.ships[y-1][x] == 0:
+                                self.player1.ships[y][x] = 1
+                                self.player1.ships_visual[y][x] = 2
+                                self.player1.ships[y - 1][x] = 1
+                                a -= 1
             mouse_pos = pygame.mouse.get_pos()
             destroyer_ship_mouse = pygame.Rect(
                 int(mouse_pos[0] - (self.field_ize / 2)),
@@ -402,19 +448,20 @@ class Game():
                 if event.type == pygame.QUIT:
                     return -5
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    x = int((event.pos[0] - 50) / self.fieodandline)
-                    if x == 10:
-                        x -= 1
-                    y = int((event.pos[1] - 50) / self.fieodandline)
-                    if y == 10:
-                        y -= 1
-                    if y > 1:
-                        if self.player1.ships[y][x] == 0 and self.player1.ships[y-1][x] == 0 and self.player1.ships[y - 2][x] == 0:
-                            self.player1.ships[y][x] = 1
-                            self.player1.ships_visual[y][x] = 3
-                            self.player1.ships[y - 1][x] = 1
-                            self.player1.ships[y - 2][x] = 1
-                            a -= 1
+                    if self.ships_fieldRect.collidepoint(event.pos):
+                        x = int((event.pos[0] - 50) / self.fieodandline)
+                        if x == 10:
+                            x -= 1
+                        y = int((event.pos[1] - 50) / self.fieodandline)
+                        if y == 10:
+                            y -= 1
+                        if y > 1:
+                            if self.player1.ships[y][x] == 0 and self.player1.ships[y-1][x] == 0 and self.player1.ships[y - 2][x] == 0:
+                                self.player1.ships[y][x] = 1
+                                self.player1.ships_visual[y][x] = 3
+                                self.player1.ships[y - 1][x] = 1
+                                self.player1.ships[y - 2][x] = 1
+                                a -= 1
             mouse_pos = pygame.mouse.get_pos()
             destroyer_ship_mouse = pygame.Rect(
                 int(mouse_pos[0] - (self.field_ize / 2)),
@@ -450,20 +497,21 @@ class Game():
                 if event.type == pygame.QUIT:
                     return -5
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    x = int((event.pos[0] - 50) / self.fieodandline)
-                    if x == 10:
-                        x -= 1
-                    y = int((event.pos[1] - 50) / self.fieodandline)
-                    if y == 10:
-                        y -= 1
-                    if x < 7:
-                        if self.player1.ships[y][x] == 0 and self.player1.ships[y][x+1] == 0 and self.player1.ships[y][x+1] == 0 and self.player1.ships[y][x+3] == 0:
-                            self.player1.ships[y][x] = 1
-                            self.player1.ships_visual[y][x] = 4
-                            self.player1.ships[y][x+1] = 1
-                            self.player1.ships[y][x+2] = 1
-                            self.player1.ships[y][x+3] = 1
-                            a -= 1
+                    if self.ships_fieldRect.collidepoint(event.pos):
+                        x = int((event.pos[0] - 50) / self.fieodandline)
+                        if x == 10:
+                            x -= 1
+                        y = int((event.pos[1] - 50) / self.fieodandline)
+                        if y == 10:
+                            y -= 1
+                        if x < 7:
+                            if self.player1.ships[y][x] == 0 and self.player1.ships[y][x+1] == 0 and self.player1.ships[y][x+1] == 0 and self.player1.ships[y][x+3] == 0:
+                                self.player1.ships[y][x] = 1
+                                self.player1.ships_visual[y][x] = 4
+                                self.player1.ships[y][x+1] = 1
+                                self.player1.ships[y][x+2] = 1
+                                self.player1.ships[y][x+3] = 1
+                                a -= 1
             mouse_pos = pygame.mouse.get_pos()
             destroyer_ship_mouse = pygame.Rect(
                 int(mouse_pos[0] - (self.field_ize / 2)),
@@ -479,15 +527,13 @@ class Game():
 class Bot(maingg.Player):
     def __init__(self):
         super().__init__()
-        self.alive = 10
-        for i in self.ships:
-            i[random.randint(0, 9)] = 1
+        self.alive = 20
         self.can_shoot = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
-        self.can_place = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
+        self.arrenge()
 
     def shoot(self, ships):
         try:
-            where = random.choice(self.can_shoot)
+            where = choice(self.can_shoot)
         except:
             pass
         x = where%10
@@ -501,9 +547,51 @@ class Bot(maingg.Player):
             self.shots[y][x] = 2
             return 0, ships
 
+    def arrenge(self):
+        can_place = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+                     27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
+                     52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76,
+                     77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99]
 
-    def arrenge():
+        available = [1,1,1,1,2,2,2,3,3,4]
 
+        while available!=[]:
+            place = choice(can_place)
+            ship = choice(available)
+            y = place // 10
+            x = place % 10
+            if ship == 1:
+                can_place.remove(place)
+                available.remove(1)
+                self.ships[y][x] = 1
+                self.ships_visual[y][x] = 1
+            elif ship == 2:
+                if place//10!=0:
+                    if self.ships[y-1][x] == 0:
+                        available.remove(2)
+                        can_place.remove(place)
+                        self.ships[y][x] = 1
+                        self.ships[y-1][x] = 1
+                        self.ships_visual[y][x] = 2
+            elif ship == 3:
+                if place//10 > 1:
+                    if self.ships[y-1][x] == 0 and self.ships[y-2][x]==0 and self.ships[y][x] == 0:
+                        available.remove(3)
+                        can_place.remove(place)
+                        self.ships[y][x] = 1
+                        self.ships[y - 1][x] = 1
+                        self.ships[y - 2][x] = 1
+                        self.ships_visual[y][x] = 3
+            elif ship == 4:
+                if (place+3)//10 == place//10:
+                    if self.ships[y][x+1] == 0 and self.ships[y - 2][x+2] == 0 and self.ships[y][x] == 0:
+                        available.remove(4)
+                        can_place.remove(place)
+                        self.ships[y][x] = 1
+                        self.ships[y][x+1] = 1
+                        self.ships[y][x+2] = 1
+                        self.ships[y][x+3] = 1
+                        self.ships_visual[y][x] = 4
 
 
 class BotMenu():
@@ -594,8 +682,8 @@ class BotMenu():
                         self.menu()
 
 bot = Bot()
-game=Game(screen, bot)
+menu = Menu(screen)
 try:
-    game.game()
+    menu.menu()
 except:
     pass
